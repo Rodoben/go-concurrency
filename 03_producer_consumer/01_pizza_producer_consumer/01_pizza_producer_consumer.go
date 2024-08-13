@@ -13,8 +13,8 @@ const NumberOfPizza = 10
 var pizzaMade, pizzaFailed, total int
 
 type Producer struct {
-	data chan pizzaOrder
-	quit chan chan error
+	pizzadata chan pizzaOrder
+	quit      chan chan error
 }
 
 type pizzaOrder struct {
@@ -33,15 +33,15 @@ func main() {
 
 	//seed the random number generator
 	rand.New(rand.NewSource(time.Now().Unix()))
-	color.Cyan("The Pizzeria is open for buisness")
+	color.Cyan("The Restaurant is open for buisness")
 	pizzaProducer := Producer{
-		data: make(chan pizzaOrder),
-		quit: make(chan chan error),
+		pizzadata: make(chan pizzaOrder),
+		quit:      make(chan chan error),
 	}
 
 	go pizzeria(&pizzaProducer)
 
-	for v := range pizzaProducer.data {
+	for v := range pizzaProducer.pizzadata {
 		if v.pizzaNumber <= NumberOfPizza {
 			if v.success {
 				color.Green(v.message)
@@ -68,9 +68,9 @@ func pizzeria(pizzaMaker *Producer) {
 		if currentPizza != nil {
 			i = currentPizza.pizzaNumber
 			select {
-			case pizzaMaker.data <- *currentPizza:
+			case pizzaMaker.pizzadata <- *currentPizza:
 			case quit := <-pizzaMaker.quit:
-				close(pizzaMaker.data)
+				close(pizzaMaker.pizzadata)
 				close(quit)
 				return
 			}
